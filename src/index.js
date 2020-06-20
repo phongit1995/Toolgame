@@ -6,7 +6,10 @@ const request = require("request-promise");
 const cheerio = require('cheerio');
 const _ = require("lodash");
 const { v4: uuidv4 } = require('uuid');
-var cors = require('cors')
+const md5 = require("md5");
+var cors = require('cors');
+const { join } = require('lodash');
+const path = require("path");
 let app = express();
 app.use(cors());
 app.use(express.static(__dirname + '/public'));
@@ -18,14 +21,66 @@ app.use(session({
     resave: true,
     cookie: { maxAge: 60*60*1000 }
 }))
+app.get("/",(req,res)=>{
+    res.sendFile(path.join(__dirname,"./public/index.html"));
+})
 app.post("/api",async(req,res)=>{
+    const arrayWeb =[
+        'http://khanhdang.xyz/AppG88/login.php',
+        'http://khanhdang.xyz/AppW88/login.php',
+        'http://khanhdang.xyz/AppR88/login.php',
+        'http://khanhdang.xyz/AppM365/login.php',
+        'http://khanhdang.xyz/AppM365/login.php',
+        'http://khanhdang.xyz/AppW365/login.php',
+    ]
+    try {
+        let password= md5(req.body.password);
+        let options = {
+        method:"post",
+        url:arrayWeb[req.body.web],
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        timeout:20000,
+        body:JSON.stringify({
+            Md5Password:password,
+            Password:req.body.password,
+            Username:req.body.username
+            })
+        }
+    let result = await request(options);
+    result = JSON.parse(result);
+    if(result.c!=0){
+        return res.json({
+            status:"Sai Tài Khoản Hoặc Mật Khẩu"
+        })
+    }
+    result = {
+        ...req.body,
+        nickname:result.d.nickname,
+        vippoint:result.d.vipPoint,
+        goldbalance:result.d.goldBalance,
+        coinbalance:result.d.coinBalance ,
+        mobile:result.d.mobile,
+        telesafe:result.d.teleSafe
+    }
+    return res.json({
+        status:"success",
+        data:result
+    })
+    } catch (error) {
+        return res.json({
+            status:"Có Lỗi Xảy Ra"
+        })
+    }
     
 })
 app.post("/getdataweb",async(req,res)=>{
     try {
         let options = {
             url:req.body.url,
-            method:"get"
+            method:"get",
+            timeout:20000
         }
         let listresult = [];
         let data = await request(options);
@@ -63,6 +118,9 @@ app.post("/getdataweb",async(req,res)=>{
         })
     } catch (error) {
         console.log(error);
+        return res.json({
+            status:"Có Lỗi Xảy Ra"
+        })
     }
     
 })
