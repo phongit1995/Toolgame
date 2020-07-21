@@ -15,7 +15,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "flash": "^1.1.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "md5": "^2.2.1",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.27",
